@@ -66,7 +66,7 @@ def get_technique_by_group(src, stix_id):
     ])
 
 
-def generate_random_data(matrix: list) -> list:
+def generate_random_data(matrix):
     temp_list = []
     flat_list = []
     for key in matrix.keys():
@@ -94,6 +94,31 @@ def classify_list():
 
 
 def main():
+    # If you're reading this, good luck.
+    # Below you'll see a file system object that's based on enterprise attack
+    # In order to understand what's happening here, go to the link at the top
+    # of this file. This stuff all has to do with STIX2. Basically, the group
+    # that worked on this before me didn't associate APT with the techniques.
+    # So I glued this together because I didn't know any php and no one contributed
+    # to the code. This does everything you'd need. But to help you avoid needing
+    # to run this, I've included the 'groups_techniques.txt' file which is the output
+    # of this program when set up and ran correctly. Assuming you don't care about
+    # the latest data, that file should suffice.
+    # The format of that file is
+    # ![GROUPNAME]
+    # [List of techniques, seperated by commas (or newline if there are none ]
+    fs = FileSystemSource('cti-master/enterprise-attack')
+    groups = get_all_groups(fs)
+    for group in groups:
+        print('%' + group.name)
+        for item in get_technique_by_group(fs, group):
+            if item.name:
+                print(item.name + ',', end='')
+            else:
+                pass
+        print("\n===========================")
+
+def test_stuff():
     # Set up the source of the information for all the queries
     fs = FileSystemSource('cti-master/enterprise-attack')
 
@@ -162,7 +187,7 @@ def main():
         # print(x)
         y = get_technique_by_name(fs, x)
         tech_id = y[0].id
-        #tech_id = 'attack-pattern--322bad5a-1c49-4d23-ab79-76d641794afa'
+        # tech_id = 'attack-pattern--322bad5a-1c49-4d23-ab79-76d641794afa'
         # print(tech_id)
         for g in get_technique_users(fs, tech_id):
             # x will return a list of aliases.
