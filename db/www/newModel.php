@@ -5,9 +5,30 @@ $user="db";
 $database="adapt";
 
 $mysqli = new mysqli("127.0.0.1", $user, $password, $database);
+
+
+
+$apt_name = [];
+$phases = [];
+$apts2 = [];
+$query="SELECT * FROM attack_patterns";
+$results = $mysqli->query("$query");
+while($row = $results->fetch_assoc()){
+	$testVar = $row['Name'];
+	$apt_name = $row['Phase'];
+	array_push($apts2, $apt_name);
+	if (!array_key_exists($testVar, $phases)){
+		#echo $testVar . '<br />';
+		$phases[$testVar] = 1;
+	} else {
+	$phases[$testVar] += 1;
+	}
+}
+
+$array_of_techniques = array_keys($phases);
+
 $query = "SELECT `groupname` FROM `groups_and_techniques`";
 $results = $mysqli->query($query);
-
 $aptnames = [];
 
 while($row = $results->fetch_assoc()){
@@ -17,6 +38,11 @@ while($row = $results->fetch_assoc()){
 # Lets create the model right here
 $model = [];
 $apts = [];
+
+foreach($array_of_techniques as $indi_tech){
+       $model[$indi_tech] =[];
+}
+
 
 foreach($aptnames as $name){
     #$query = "SELECT `techniques` FROM `groups_and_techniques` WHERE `groupname` = $name";
@@ -42,7 +68,7 @@ foreach($aptnames as $name){
     }
 }
 
-$query = "SELECT * FROM patterns_seen limit 2000";
+$query = "SELECT * FROM patterns_seen";
 $results = $mysqli->query("$query");
 
 while($row = $results->fetch_assoc()){
@@ -50,7 +76,7 @@ while($row = $results->fetch_assoc()){
         $apts[$ind_apts] += (1/count($model[$row['Name']]));
     }
 }
-
+arsort($apts);
 var_dump($apts);
 
 
