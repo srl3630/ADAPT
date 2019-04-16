@@ -11,7 +11,7 @@ Write-EventLog -LogName Application -Source 'Test' -EventId 4624 -Message "noise
 # Failed logon - event ID 4625
 Write-EventLog -LogName Application -Source 'Test' -EventId 4625 -Message "noise - user failed logon"
 
-# File was deteleted - event ID 5141
+# File was deleted - event ID 5141
 Write-EventLog -LogName Application -Source 'Test' -EventId 5141 -Message "noise - file deleted"
 
 # File in AD was created - event ID 5137
