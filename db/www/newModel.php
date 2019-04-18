@@ -25,6 +25,8 @@ $results = $mysqli->query($query);
         <input type="checkbox" name="computers[]" value="<?php echo $row['ComputerName']; ?>"><?php echo $row['ComputerName']; ?></input></br>
 
     <?php endwhile; ?>
+    <!-- !!! is a value used specifically for the php script. Check the logic in the model to see how it's implemented -->
+    <input type="checkbox" name="computers[]" value="!!!">Run against entire infrastructure</input></br>
     <input type="submit" name="submit" value="Submit" />
 </form>
 <?php
@@ -64,11 +66,7 @@ function run_model($array_of_computers, $mysqli)
     # Now we have all the possible techniques.
     $array_of_techniques = array_keys($phases);
 
-    # Get the name of all the groups from the groups_and_techniques table.
-    # Remember, this table is not generated from the load-data.php like the
-    # other tables are. You need to run the script from ./PythonRandoms/stixx_gen.py 
-    # which will output a file similar to groups_techniques.txt 
-    # Then use the load-groups.php to load it to the database.
+    # Run the query and save the results to $results
     $query = "SELECT `groupname` FROM `groups_and_techniques`";
     $results = $mysqli->query($query);
     $aptnames = [];
@@ -90,12 +88,10 @@ function run_model($array_of_computers, $mysqli)
 
         $query = "select techniques from groups_and_techniques where groupname = '$name'";
         $results = $mysqli->query($query);
-        $apts[$name] = 0.0; # Use floats because we're going to be doing fractions.
+        $apts[$name] = 0.0;
 
         while ($row = $results->fetch_assoc()) {
-            # explode works similarly to .split() in python
-            # basically we get a string of 'techniques' that are delimited by
-            # commas, since I want all of these individually, I explode them.
+
             $techs = explode(',', $row['techniques']);
 
             foreach ($techs as $things) {
@@ -105,9 +101,6 @@ function run_model($array_of_computers, $mysqli)
                 if (array_key_exists($things, $model)) {
                     array_push($model[$things], $name);
                 } else {
-                    # TODO: 
-                    # We probably don't need either of these if statements
-                    # because this was created before we put the technique builde
                     $model[$things] = [];
                     array_push($model[$things], $name);
                 }
@@ -123,6 +116,13 @@ function run_model($array_of_computers, $mysqli)
     }
     $long_string .= ";";
 
+    # Here's a clever trick to implement a PHP only solution to a check all box.
+    # What we do is set the value of a check all box to something no windows box should ever be 
+    # called. This means if we see it, we know that we just need to run the query on the check
+    # all. Which is just a semi-colon, no WHERE statement.
+    if (strpos($long_string, '!!!') !== false) {
+        $long_string = ";";
+    }
 
     $query = "SELECT * FROM patterns_seen " . $long_string;
     echo "Query ran:" . '</br>';
@@ -136,9 +136,6 @@ function run_model($array_of_computers, $mysqli)
             $apts[$ind_apts] += (1 / count($model[$row['Name']]));
         }
     }
-    
-    # arsort sorts the keys in the 2D array by the value, in descending order.
-    # that way when we var_dump it, the most likely APT appears at the top.
     arsort($apts);
     var_dump($apts);
 } # This is the end of the function
