@@ -2,7 +2,7 @@
 Active Detection of Advanced Persistent Threats
 
 ## System Workflow:
-![System Wrokflow](Documentation/screenshots/apt-tool-diagram.svg)
+![System Workflow](Documentation/screenshots/apt-tool-diagram.svg)
 
 1. [Windows](Windows/) -  Windows 7 machines using Sysmon and Winlogbeat to send log data to the SEIM
 2. [Elk](elk/) - ELK server collects log data from the Workstations and forwards logs to the API for our tool
