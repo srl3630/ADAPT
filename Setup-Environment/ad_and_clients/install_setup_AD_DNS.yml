@@ -1,0 +1,63 @@
+# source: https://www.ansible.com/blog/active-directory-ansible-tower
+
+# use WinRM to connect to Windows hosts 
+---
+- name: Windows Playbook
+  hosts: win
+  vars:
+    ansible_ssh_user: Administrator
+    ansible_ssh_pass: 6KaJqHs8!i*c2vl
+    ansible_connection: winrm
+    ansible_winrm_server_cert_validation: ignore
+
+# next, create domain 
+ tasks:
+
+- name: Install AD 
+  win_feature:
+    name: AD-Domain-Services
+    include_management_tools: yes
+    include_sub_features: yes
+    state: present
+  register: result
+
+- name: Create new forest
+  win_domain:
+    dns_domain_name: capstone13.local
+    safe_mode_password: Ma!Hou%Sug2
+  register: result
+
+- name: Reboot after creation
+  win_reboot:
+    msg: "Server config in progress; rebooting..."
+  when: result.reboot_required
+
+# configure DNS    
+- name: Configure DNS
+  win_dns_client:
+    adapter_names: "Ethernet 2"
+    ipv4_addresses:
+    - 192.168.1.1 # change as needed for your topology
+
+# join clients to domain 
+- name: Add Windows1 to domain
+  win_domain_membership:
+    dns_domain_name: capstone13.local
+    domain_admin_user: windows1@capstone.local
+    domain_admin_password: Nar!Mock*Sun
+    state: domain
+  register: domain_state
+
+- name: Add Windows2 to domain
+  win_domain_membership:
+    dns_domain_name: capstone13.local
+    domain_admin_user: windows2@capstone.local
+    domain_admin_password: Kar>Su>Nock
+    state: domain
+  register: domain_state
+
+# finally, reboot 
+- name: Reboot after joining
+  win_reboot:
+    msg: "Joining domain. Rebooting..."
+  when: domain_state.reboot_required
